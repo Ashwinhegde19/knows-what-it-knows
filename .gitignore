@@ -1,0 +1,24 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+*.egg-info/
+
+# model weights and caches
+models/
+*.safetensors
+*.gguf
+.cache/
+
+# notebooks
+.ipynb_checkpoints/
+
+# large inspect logs: keep the ones you cite, ignore scratch runs
+logs/scratch/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
