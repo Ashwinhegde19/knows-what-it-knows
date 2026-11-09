@@ -36,6 +36,7 @@ image = (
     .pip_install("vllm==0.33.0", "huggingface_hub[hf_transfer]")
     .env({
         "HF_HUB_OFFLINE": "1",
+        "VLLM_USE_FLASHINFER_SAMPLER": "0",   # FlashInfer's sampler JIT-compiles and needs nvcc; use the torch sampler
         "KWIK_MODEL": MODEL,
         "KWIK_FLAGS": " ".join(MODEL_FLAGS[MODEL]),
         "KWIK_MAX_LEN": MAX_MODEL_LEN,
