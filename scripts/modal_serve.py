@@ -23,7 +23,7 @@ PORT = 8000
 MODEL_FLAGS = {
     "IFM/K2-Horizon-3.7B": ["--trust-remote-code", "--dtype", "bfloat16", "--reasoning-parser", "k2_horizon"],
     "IFM/K2-Horizon-7B":   ["--trust-remote-code", "--dtype", "bfloat16", "--reasoning-parser", "k2_horizon"],
-    "openbmb/MiniCPM5-2B": ["--trust-remote-code", "--dtype", "bfloat16", "--reasoning-parser", "deepseek_r1"],  # <think>…</think> blocks
+    "openbmb/MiniCPM5-2B": ["--trust-remote-code", "--dtype", "bfloat16", "--reasoning-parser", "qwen3"],  # <think>…</think> blocks; qwen3 parser handles the empty block in non-thinking mode
     "Qwen/Qwen3.5-4B":     ["--reasoning-parser", "qwen3", "--language-model-only"],
 }
 if MODEL not in MODEL_FLAGS:
