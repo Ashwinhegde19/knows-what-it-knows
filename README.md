@@ -49,7 +49,8 @@ Full instructions will be filled in during the sprint.
 Apart requires pre-sprint work to be declared. Before 13 November 2026 this repo contained only:
 
 - this README, the folder layout, `.gitignore` and `requirements.txt`
-- (to be updated) question sampling script and the sampled CSVs
+- `scripts/build_datasets.py` and its outputs `data/factual_200.csv` and `data/unanswerable_50.csv`, with `data/README.md` describing the sampling (added 9 November)
+- the 25 fabricated-entity questions in that script (written 9 November)
 
 All eval tasks, prompts, runs, figures and the report were produced during the sprint. Any later exception is listed here.
 
