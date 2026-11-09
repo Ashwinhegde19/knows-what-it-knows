@@ -51,6 +51,7 @@ Apart requires pre-sprint work to be declared. Before 13 November 2026 this repo
 - this README, the folder layout, `.gitignore` and `requirements.txt`
 - `scripts/build_datasets.py` and its outputs `data/factual_200.csv` and `data/unanswerable_50.csv`, with `data/README.md` describing the sampling (added 9 November)
 - the 25 fabricated-entity questions in that script (written 9 November)
+- `scripts/modal_download.py`, `scripts/modal_serve.py` and `scripts/smoke_test.py`: Modal weight download, vLLM serving, and a one-request connectivity check (added 9 November). No eval logic.
 
 All eval tasks, prompts, runs, figures and the report were produced during the sprint. Any later exception is listed here.
 
