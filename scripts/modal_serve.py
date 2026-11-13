@@ -15,7 +15,10 @@ import modal
 
 VOLUME_NAME = "kwik-models"
 MODEL = os.environ.get("KWIK_MODEL", "IFM/K2-Horizon-3.7B")
-GPU = os.environ.get("KWIK_GPU", "L40S")          # 48 GB; fine for every model here up to 7B
+# Sprint change (14 Nov): H100 first. On an L40S the KV cache filled with long thinking replies, so only 12-20
+# requests ran at once (~300 tokens/s). Fallbacks keep the run going if no H100 is free; each reply's GPU is not
+# recorded, and sampling noise is far larger than any numeric difference between these GPUs.
+GPU = os.environ.get("KWIK_GPU", "H100,A100-80GB,L40S").split(",")
 MAX_MODEL_LEN = os.environ.get("KWIK_MAX_LEN", "65536")
 PORT = 8000
 

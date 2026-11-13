@@ -55,50 +55,55 @@ def append(path: Path, row: dict, lock: asyncio.Lock):
 
 
 async def run_calibration(model, mode, runs, limit, conc):
+    """All runs go in flight together (run 1 queued first), so no run waits on the slowest replies of another."""
     items = load_csv("factual_200.csv")[:limit]
     client, sem, lock = client_for(model), asyncio.Semaphore(conc), asyncio.Lock()
+
+    async def one(q, run, path):
+        async with sem:
+            msg = [{"role": "user", "content": prompts.CALIBRATION.format(**q)}]
+            r = await chat(client, model, mode, msg, seed=run * 100000 + int(q["id"][1:]))
+        p = parse_mc(r["visible"])
+        row = {"key": q["id"], "id": q["id"], "run": run, "model": model, "mode": mode,
+               "category": q["category"], "gold": q["answer"], **p,
+               "correct": p["answer"] == q["answer"] if p["answer"] else None, **r}
+        await append(path, row, lock)
+
+    jobs = []
     for run in range(1, runs + 1):
         path = out_path("calibration", model, mode, run)
         skip = done_ids(path)
-
-        async def one(q):
-            async with sem:
-                msg = [{"role": "user", "content": prompts.CALIBRATION.format(**q)}]
-                r = await chat(client, model, mode, msg, seed=run * 100000 + int(q["id"][1:]))
-            p = parse_mc(r["visible"])
-            row = {"key": q["id"], "id": q["id"], "run": run, "model": model, "mode": mode,
-                   "category": q["category"], "gold": q["answer"], **p,
-                   "correct": p["answer"] == q["answer"] if p["answer"] else None, **r}
-            await append(path, row, lock)
-
         todo = [q for q in items if q["id"] not in skip]
         print(f"calibration {slug(model)} {mode} run{run}: {len(todo)} to do", flush=True)
-        await asyncio.gather(*(one(q) for q in todo))
+        jobs += [one(q, run, path) for q in todo]
+    await asyncio.gather(*jobs)
 
 
 async def run_abstention(model, mode, runs, limit, conc):
     items = load_csv("unanswerable_50.csv")[:limit] + load_csv("answerable_50.csv")[:limit]
     client, sem, lock = client_for(model), asyncio.Semaphore(conc), asyncio.Lock()
+
+    async def one(q, cond, run, path):
+        tmpl = prompts.ABSTENTION_PLAIN if cond == "plain" else prompts.ABSTENTION_PENALTY
+        async with sem:
+            msg = [{"role": "user", "content": tmpl.format(question=q["question"])}]
+            r = await chat(client, model, mode, msg, seed=run * 100000 + zlib.crc32(q["id"].encode()) % 99991)
+        p = parse_final(r["visible"])
+        answerable = q["kind"] == "answerable_trivia"
+        aliases = q.get("gold_aliases", "").split(" || ") if answerable else []
+        correct = (not p["abstained"]) and matches_gold(p["final"], aliases) if answerable else None
+        row = {"key": f"{q['id']}|{cond}", "id": q["id"], "kind": q["kind"], "answerable": answerable,
+               "condition": cond, "run": run, "model": model, "mode": mode, **p, "correct": correct, **r}
+        await append(path, row, lock)
+
+    jobs = []
     for run in range(1, runs + 1):
         path = out_path("abstention", model, mode, run)
         skip = done_ids(path)
-
-        async def one(q, cond):
-            tmpl = prompts.ABSTENTION_PLAIN if cond == "plain" else prompts.ABSTENTION_PENALTY
-            async with sem:
-                msg = [{"role": "user", "content": tmpl.format(question=q["question"])}]
-                r = await chat(client, model, mode, msg, seed=run * 100000 + zlib.crc32(q["id"].encode()) % 99991)
-            p = parse_final(r["visible"])
-            answerable = q["kind"] == "answerable_trivia"
-            aliases = q.get("gold_aliases", "").split(" || ") if answerable else []
-            correct = (not p["abstained"]) and matches_gold(p["final"], aliases) if answerable else None
-            row = {"key": f"{q['id']}|{cond}", "id": q["id"], "kind": q["kind"], "answerable": answerable,
-                   "condition": cond, "run": run, "model": model, "mode": mode, **p, "correct": correct, **r}
-            await append(path, row, lock)
-
         todo = [(q, c) for q in items for c in ("plain", "penalty") if f"{q['id']}|{c}" not in skip]
         print(f"abstention {slug(model)} {mode} run{run}: {len(todo)} to do", flush=True)
-        await asyncio.gather(*(one(q, c) for q, c in todo))
+        jobs += [one(q, c, run, path) for q, c in todo]
+    await asyncio.gather(*jobs)
 
 
 async def run_pushback(model, mode, limit, conc):

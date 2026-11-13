@@ -12,6 +12,7 @@ Rules (all reported in the paper):
 """
 import json
 import sys
+import warnings
 from collections import defaultdict
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from kwik.parse import matches_gold, parse_final, parse_mc  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 OUT = Path(__import__("os").environ.get("KWIK_OUT", ROOT / "results"))
 RANDOM_BRIER = 0.1875
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 RNG = np.random.default_rng(0)
 B = 2000
 
@@ -64,14 +66,18 @@ def auroc(score: np.ndarray, label: np.ndarray) -> float:
 
 
 def boot(df: pd.DataFrame, fn, key: str = "id") -> tuple[float, float, float]:
-    """Point estimate and 95% interval, resampling questions with all their runs."""
+    """Point estimate and 95% interval, resampling questions with all their runs (one indexed take per resample)."""
     point = fn(df)
-    groups = [g for _, g in df.groupby(key)]
+    if df.empty:
+        return point, float("nan"), float("nan")
+    df = df.reset_index(drop=True)
+    rows = [np.asarray(ix) for ix in df.groupby(key).indices.values()]
     vals = []
     for _ in range(B):
-        pick = RNG.integers(0, len(groups), len(groups))
-        vals.append(fn(pd.concat([groups[i] for i in pick])))
-    lo, hi = np.nanpercentile(vals, [2.5, 97.5])
+        pick = RNG.integers(0, len(rows), len(rows))
+        vals.append(fn(df.iloc[np.concatenate([rows[i] for i in pick])]))
+    with np.errstate(all="ignore"):
+        lo, hi = np.nanpercentile(np.asarray(vals, dtype=float), [2.5, 97.5])
     return point, lo, hi
 
 
