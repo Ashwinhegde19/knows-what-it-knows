@@ -50,6 +50,9 @@ image = (
     volumes={"/models": vol},
     timeout=6 * 3600,
     scaledown_window=5 * 60,      # shut the GPU down 5 min after the last request
+    # One GPU per model (sprint change, 13 Nov): the workspace ran only 3 GPUs at once, and a second K2 container
+    # was starving the other models. Clients keep at most 64 requests in flight per model to match.
+    max_containers=int(os.environ.get("KWIK_MAX_CONTAINERS", "1")),
 )
 @modal.concurrent(max_inputs=64)
 @modal.web_server(port=PORT, startup_timeout=20 * 60)
