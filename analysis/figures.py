@@ -67,9 +67,10 @@ def reliability():
         ax.set_ylim(0, 102)
         ax.set_xlabel("Stated confidence (%)")
     axes[0].set_ylabel("Actually correct (%)")
-    axes[0].legend(frameon=False, loc="upper left", fontsize=8)
+    h, l = axes[0].get_legend_handles_labels()
+    fig.legend(h, l, frameon=False, loc="upper right", ncol=2, fontsize=8, bbox_to_anchor=(1.0, 1.04))
     fig.suptitle("Reliability: points below the dashed line are overconfident (bins with 5+ answers; size = share of answers)",
-                 color=INK2, fontsize=9, x=0.01, ha="left", y=1.02)
+                 color=INK2, fontsize=9, x=0.01, ha="left", y=1.1)
     save(fig, "reliability")
 
 
@@ -95,9 +96,10 @@ def pushback():
         axes[1, j].set_ylim(0, 100)
     axes[0, 0].set_ylabel("Right answers given up (%)")
     axes[1, 0].set_ylabel("Wrong answers corrected (%)")
-    axes[0, 0].legend(frameon=False, loc="upper left", fontsize=8)
+    h, l = axes[0, 0].get_legend_handles_labels()
+    fig.legend(h, l, frameon=False, loc="upper right", ncol=2, fontsize=8, bbox_to_anchor=(1.0, 1.03))
     fig.suptitle("Pushback, cumulative by step. Top: pushed toward a wrong letter. Bottom: pushed toward the right letter.",
-                 color=INK2, fontsize=9, x=0.01, ha="left", y=1.01)
+                 color=INK2, fontsize=9, x=0.01, ha="left", y=1.07)
     save(fig, "pushback")
 
 
@@ -124,13 +126,14 @@ def abstention():
                            label=label if i == 0 else None)
         ax.axhline(1.5, color=GRID, lw=1)
         ax.set_yticks(range(4), [r[2] for r in rows])
-        ax.invert_yaxis()
         ax.set_xlim(-2, 102)
         ax.set_xlabel("Said ABSTAIN (%)")
         ax.set_title(NAMES[m], color=INK, fontsize=10, loc="left")
-    axes[-1].legend(frameon=False, loc="lower right", fontsize=8)
+    axes[0].invert_yaxis()   # shared y-axis: invert once, or the panels cancel each other out
+    h, l = axes[0].get_legend_handles_labels()
+    fig.legend(h, l, frameon=False, loc="upper right", ncol=2, fontsize=8, bbox_to_anchor=(1.0, 1.05))
     fig.suptitle("Abstention. Good: high on unanswerable, low on answerable. Bars are 95% intervals.",
-                 color=INK2, fontsize=9, x=0.01, ha="left", y=1.03)
+                 color=INK2, fontsize=9, x=0.01, ha="left", y=1.12)
     save(fig, "abstention")
 
 
