@@ -68,4 +68,9 @@ def matches_gold(final: str | None, aliases: list[str]) -> bool:
     if not isinstance(final, str) or not final:
         return False
     f = f" {_norm(final)} "
-    return any(_norm(a) and f" {_norm(a)} " in f for a in aliases)
+    if any(_norm(a) and f" {_norm(a)} " in f for a in aliases):
+        return True
+    # Spacing variants ("Meat Loaf" vs "meatloaf"), only for aliases of 5+ letters so short words like "of"
+    # cannot match inside other words.
+    squeezed = f.replace(" ", "")
+    return any(len(_norm(a).replace(" ", "")) >= 5 and _norm(a).replace(" ", "") in squeezed for a in aliases)

@@ -110,6 +110,10 @@ def calibration(raw: Path) -> pd.DataFrame:
             "mean_confidence": v["p"].mean(), "overconfidence": gap[0], "overconfidence_lo": gap[1], "overconfidence_hi": gap[2],
             "brier": br[0], "brier_lo": br[1], "brier_hi": br[2], "brier_parsed_only": v["brier"].mean(),
             "brier_skill_vs_random": 1 - br[0] / RANDOM_BRIER,
+            # Reference that knows the model's accuracy but nothing per question: always state that accuracy.
+            # Its Brier is acc * (1 - acc). Positive skill = stated confidence beats that constant.
+            "brier_constant_baseline": acc[0] * (1 - acc[0]),
+            "brier_skill_vs_constant": 1 - br[0] / (acc[0] * (1 - acc[0])),
             "ece": ece(v["p"].to_numpy(), v["is_correct"].to_numpy()),
             "auroc": au[0], "auroc_lo": au[1], "auroc_hi": au[2],
             "share_conf_ge90": len(hi) / max(len(v), 1), "accuracy_when_conf_ge90": hi["is_correct"].mean(),
@@ -136,6 +140,10 @@ def abstention(raw: Path) -> pd.DataFrame:
                                 if r["answerable"] else False, axis=1)
     df["score"] = np.where(df["abstained"], 0, np.where(df["is_correct"], 1, -3))
     df["slug"] = df["model"].str.split("/").str[-1].str.lower()
+    # An answerable question counts as "known" to a model if any of its replies (any mode, run or condition)
+    # got it right. Abstaining on a known question is lost knowledge, not caution.
+    known = df[df["answerable"] & df["is_correct"]].groupby("slug")["id"].agg(set).to_dict()
+    df["known"] = df.apply(lambda r: r["answerable"] and r["id"] in known.get(r["slug"], set()), axis=1)
     out = []
     for (slug, mode, cond), g in df.groupby(["slug", "mode", "condition"]):
         U, A = g[~g["answerable"]], g[g["answerable"]]
@@ -151,10 +159,13 @@ def abstention(raw: Path) -> pd.DataFrame:
             "fabricated_abstain": U[U["kind"] == "fabricated"]["abstained"].mean(),
             "answerable_abstain": aa[0], "answerable_abstain_lo": aa[1], "answerable_abstain_hi": aa[2],
             "answerable_correct": A["is_correct"].mean(), "answerable_wrong": (~A["abstained"] & ~A["is_correct"]).mean(),
+            "n_known_questions": A[A["known"]]["id"].nunique(),
+            "abstain_on_known": A[A["known"]]["abstained"].mean(),
+            "abstain_on_unknown_answerable": A[~A["known"]]["abstained"].mean(),
             "penalty_score": sc[0], "penalty_score_lo": sc[1], "penalty_score_hi": sc[2],
         })
     df.to_csv(OUT / "abstention_items.csv", index=False,
-              columns=["slug", "mode", "condition", "run", "id", "kind", "answerable", "final", "abstained",
+              columns=["slug", "mode", "condition", "run", "id", "kind", "answerable", "known", "final", "abstained",
                        "abstain_how", "format_ok", "is_correct", "score", "finish_reason"])
     return pd.DataFrame(out)
 
