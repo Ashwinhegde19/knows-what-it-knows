@@ -3,7 +3,8 @@
 Ashwin K M. Apart Research AI x Epistemics Sprint, Track 1, 13 to 15 November 2026.
 Code and raw replies: github.com/Ashwinhegde19/knows-what-it-knows
 
-> Draft status: results complete. Items marked [VERIFY] need a source link checked before submission.
+> Draft status: results complete; references checked 14 November 2026. The LLM usage statement needs the
+> author's own wording.
 
 ## Abstract
 
@@ -28,10 +29,10 @@ small models. Public leaderboards report accuracy; honesty evaluations such as C
 Score cover flagship models.
 
 K2 Horizon (Institute of Foundation Models, September 2026, Apache 2.0) is a useful case. Its 3.7B and 7B
-versions are among the strongest tiny open models on standard benchmarks, and its largest sibling is reported
-by Artificial Analysis to decline more often than it guesses on AA-Omniscience [VERIFY: attempts about 40% of
-questions, 26% hallucination rate]. Nobody has checked whether that caution survives at 3.7B and 7B, or whether
-these models know what they know at all.
+versions are among the strongest tiny open models on standard benchmarks, and Artificial Analysis reports that
+its largest sibling, K2 Horizon 375B A23B, attempts only 40% of AA-Omniscience questions, with a 26% hallucination
+rate among the lowest it has measured. Nobody has checked whether that caution survives at 3.7B and 7B, or
+whether these models know what they know at all.
 
 We ask three questions of K2 Horizon 3.7B and 7B, MiniCPM5-2B (OpenBMB, September 2026) and Qwen3.5-4B
 (Alibaba, March 2026, the widely evaluated reference), each with thinking on and with thinking off or at its
@@ -63,8 +64,8 @@ format and its rule for unparseable replies.
 **Abstention.** SelfAware (Yin et al., 2023) pairs unanswerable questions with answerable ones. Kalai et al.
 (2025) argue that benchmarks which score "I don't know" as wrong reward guessing, and propose stating an explicit
 penalty threshold in the prompt; we test that proposal directly.
-**Pushback and sycophancy.** The FlipFlop experiment (Laban et al., 2023) showed accuracy drops after "Are you
-sure?". SycEval (Fanous et al., 2025) separates regressive flips (right to wrong) from progressive ones (wrong to
+**Pushback and sycophancy.** The FlipFlop experiment (Laban et al., 2023) found that models flipped their answer
+46% of the time after a bare "Are you sure?". SycEval (Fanous et al., 2025) separates regressive flips (right to wrong) from progressive ones (wrong to
 right) under rebuttals of rising strength. The Pander Score (Botas et al., 2026) measures sycophancy in flagship
 models. We combine these into one protocol and add the link to stated confidence.
 
@@ -125,7 +126,8 @@ every model (by 0.032 to 0.045, all intervals exclude zero) and lowers overconfi
 (intervals exclude zero for three models; K2 Horizon 7B: −2.8 [−5.8, +0.1]). It also raises accuracy by 2.8 to
 5.5 points.
 
-**Ranking right from wrong is not the same as being calibrated.** Confidence separates right from wrong answers
+**Ranking right from wrong is not the same as being calibrated** (ConfidenceBench reports the same split for
+frontier models). Confidence separates right from wrong answers
 in every model (AUROC 0.74 to 0.82). Qwen3.5-4B ranks best (0.82 with thinking), yet its Brier score is only 6%
 better than always stating its own accuracy, because it puts 89% to 92% of all answers at 90% confidence or
 higher. K2 Horizon 7B with thinking is the best calibrated (20% better than that constant). K2 Horizon 3.7B at
@@ -245,6 +247,10 @@ model: a lower Brier score and far less capitulation under pushback. For Qwen3.5
 answered most questions about invented entities into one that declined them. The cost is tokens: median reply
 length rose from about 110 to 420 tokens without thinking to 580 to 3,400 with it.
 
+**Bare doubt no longer works; a named alternative does.** Where the FlipFlop experiment saw 2023 models flip
+46% of answers after "Are you sure?", these 2026 models changed 0% to 4%. The weakness has moved: a suggested
+answer, with or without a claimed authority, still overturns many correct answers.
+
 **Prompting a scoring rule is not enough.** Kalai et al. argue that benchmarks reward guessing and propose stating
 the penalty in the prompt. For these small models the stated rule moved abstention by a few points and improved
 the actual penalty score clearly in one of eight configurations. Whatever produces abstention in these models,
@@ -265,15 +271,22 @@ raw reply and the scoring code so the same checks can be run on the next model i
 
 ## References
 
-- Botas et al. (2026). Pander Score. [VERIFY full title and link]
-- Fanous et al. (2025). SycEval: Evaluating LLM Sycophancy. [VERIFY link]
-- ffrench-Constant et al. (2026). ConfidenceBench. [VERIFY full title and link]
-- Kalai, Nachum, Vempala, Zhang (2025). Why Language Models Hallucinate. [VERIFY link]
-- Laban et al. (2023). Are You Sure? Challenging LLMs Leads to Performance Drops in The FlipFlop Experiment.
-- Wang et al. (2024). MMLU-Pro: A More Robust and Challenging Multi-Task Language Understanding Benchmark.
-- Yin et al. (2023). Do Large Language Models Know What They Don't Know? (SelfAware).
-- Artificial Analysis (2026). AA-Omniscience results for K2 Horizon. [VERIFY link and numbers]
-- Model cards: IFM/K2-Horizon-3.7B, IFM/K2-Horizon-7B, openbmb/MiniCPM5-2B, Qwen/Qwen3.5-4B (Hugging Face).
+- Artificial Analysis (2026). K2 Horizon 375B A23B on AA-Omniscience (post on X).
+  https://x.com/ArtificialAnlys/status/2095504804651151758
+- Botas, A., de Font-Reaulx, P., Hewitt, L. (2026). Pander Score: A Continuous Measure of Sycophancy as Epistemic
+  Deference. arXiv:2606.07897.
+- Fanous, A., et al. (2025). SycEval: Evaluating LLM Sycophancy. AIES 2025; arXiv:2502.08177.
+- ffrench-Constant, M., Yang, D., Huang, X., Kapoor, S. (2026). ConfidenceBench: Evaluating Confidence Calibration
+  in Large Language Models. arXiv:2607.20526.
+- Kalai, A. T., Nachum, O., Vempala, S. S., Zhang, E. (2025). Why Language Models Hallucinate. arXiv:2509.04664.
+- Laban, P., Murakhovs'ka, L., Xiong, C., Wu, C.-S. (2023). Are You Sure? Challenging LLMs Leads to Performance
+  Drops in The FlipFlop Experiment. arXiv:2311.08596.
+- Wang, Y., et al. (2024). MMLU-Pro: A More Robust and Challenging Multi-Task Language Understanding Benchmark.
+  NeurIPS 2024 Datasets and Benchmarks; arXiv:2406.01574.
+- Yin, Z., et al. (2023). Do Large Language Models Know What They Don't Know? Findings of ACL 2023;
+  arXiv:2305.18153.
+- Model cards on Hugging Face: IFM/K2-Horizon-3.7B, IFM/K2-Horizon-7B, openbmb/MiniCPM5-2B, Qwen/Qwen3.5-4B
+  (sampling settings and thinking switches, checked 13 November 2026).
 
 ## Appendix A. Limitations and dual-use considerations
 
