@@ -3,8 +3,8 @@
     KWIK_MODEL=IFM/K2-Horizon-3.7B modal serve scripts/modal_serve.py     # dev, dies with Ctrl-C
     KWIK_MODEL=IFM/K2-Horizon-3.7B modal deploy scripts/modal_serve.py    # persistent URL
 
-Prints an OpenAI-compatible base URL (…/v1). Inspect AI talks to it with
-    --model openai/<served name> -M base_url=<url>/v1 -M api_key=EMPTY
+Prints an OpenAI-compatible base URL (…/v1). The sprint runner (kwik/run.py) talks to it through
+kwik.models.base_url(); any OpenAI-compatible client works with api_key=EMPTY.
 
 Pre-sprint infrastructure; contains no eval logic.
 """
@@ -15,9 +15,10 @@ import modal
 
 VOLUME_NAME = "kwik-models"
 MODEL = os.environ.get("KWIK_MODEL", "IFM/K2-Horizon-3.7B")
-# Sprint change (14 Nov): H100 first. On an L40S the KV cache filled with long thinking replies, so only 12-20
-# requests ran at once (~300 tokens/s). Fallbacks keep the run going if no H100 is free; each reply's GPU is not
-# recorded, and sampling noise is far larger than any numeric difference between these GPUs.
+# Sprint change (14 Nov): faster GPUs first. On an L40S the KV cache filled with long thinking replies, so only
+# 12-20 requests ran at once (~300 tokens/s). Our Modal plan had no H100 access, so in practice the runs used an
+# A100-80GB (the first K2 Horizon requests ran on an L40S). Each reply's GPU is not recorded; sampling noise is far
+# larger than any numeric difference between these GPUs.
 GPU = os.environ.get("KWIK_GPU", "H100,A100-80GB,L40S").split(",")
 MAX_MODEL_LEN = os.environ.get("KWIK_MAX_LEN", "65536")
 PORT = 8000
