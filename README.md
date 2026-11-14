@@ -4,6 +4,31 @@ Calibration, abstention and pushback-resistance evals for new small open-weight 
 
 Built for the Apart Research **AI x Epistemics Research Sprint**, Track 1 (Model Epistemics & Decision-Making Evals), 13–15 November 2026.
 
+**Report:** [`report/Apart_submission.pdf`](report/Apart_submission.pdf) (4 pages of main text, plus references and appendix).
+
+## Main results
+
+Four models released in 2026, each with thinking on and off, 14,597 requests in total. Every reply, including thinking text, is in `results/raw/`.
+
+- **All eight setups are overconfident**, by 6.5 to 14.1 points. Answers stated at 90% confidence or more were right 84% to 91% of the time.
+- **No model declines exactly what it cannot know.** K2 Horizon 7B answered questions about invented people and things 40% to 52% of the time. MiniCPM5-2B refused 57% to 82% of answerable questions.
+- **Stating the penalty for wrong answers barely helps** (right +1, wrong -3, ABSTAIN 0). It improved the penalty score clearly in only one of eight setups.
+- **A named wrong answer overturns correct ones.** By the end of the four challenges, models gave up 29% to 87% of their correct answers, almost always to the suggested one. A bare "Are you sure?" changed 0% to 4%.
+- **Thinking is the one setting that helped everywhere.** It lowered the Brier score in every model and, on the same questions, cut giving up under pushback by 17 to 50 points.
+
+| Model | Thinking | Accuracy % | Overconfidence (points) | Abstains on invented entities % | Abstains on answers it knows % | Correct answers given up % |
+|---|---|---|---|---|---|---|
+| MiniCPM5-2B | on | 78.3 | 6.5 | 99 | 37 | 35 |
+| MiniCPM5-2B | off | 73.7 | 10.6 | 95 | 45 | 69 |
+| K2 Horizon 3.7B | on | 78.5 | 8.6 | 63 | 4 | 29 |
+| K2 Horizon 3.7B | low | 73.8 | 14.1 | 63 | 8 | 52 |
+| K2 Horizon 7B | on | 83.0 | 7.1 | 53 | 2 | 30 |
+| K2 Horizon 7B | low | 80.2 | 9.7 | 48 | 1 | 43 |
+| Qwen3.5-4B | on | 86.3 | 8.5 | 88 | 5 | 38 |
+| Qwen3.5-4B | off | 80.8 | 12.6 | 39 | 6 | 87 |
+
+Limits: small samples (200 calibration questions, 50 + 50 abstention questions), so differences of a few points are not reliable. K2 Horizon cannot switch thinking off, so "low" is its lowest setting. A hand check of 80 replies was done by the AI assistant that helped build this; see `results/AUDIT.md`. The full list is in Appendix A of the report.
+
 ## Question
 
 New small open models ship every few weeks with no independent honesty evals. This project tests whether they know when they are likely to be wrong, using three checks:
@@ -19,7 +44,6 @@ New small open models ship every few weeks with no independent honesty evals. Th
 | K2 Horizon 3.7B, 7B (IFM, Sep 2026) | Target: top-ranked tiny open model, no independent evals |
 | MiniCPM5-2B (OpenBMB, Sep 2026) | Target: abstains far more than peers; is that real? |
 | Qwen3.5-4B (Alibaba, Mar 2026) | Reference: widely evaluated |
-| K2 Horizon 32B | Stretch, only if time allows |
 
 ## Layout
 
@@ -30,7 +54,7 @@ analysis/   scoring (score.py) and figures (figures.py)
 scripts/    data building, Modal serving, run_all.sh
 results/    raw/ one JSON line per request with full replies; summary_*.csv and *_items.csv
 figures/    reliability, abstention and pushback plots
-report/     the PDF and its source
+report/     the submitted PDF (Apart_submission.pdf) and how it was built (fill_template.py)
 ```
 
 ## Running
